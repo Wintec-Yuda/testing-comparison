@@ -128,3 +128,42 @@ export async function fetchCashIn(
 
   return response.json()
 }
+
+export async function fetchWebsiteSettlementDetailMonth(
+  year: number,
+  month: number,
+  token: string
+) {
+  const daysInMonth = new Date(
+    year,
+    month,
+    0
+  ).getDate()
+
+  const response = await fetch(
+    `${BASE_URL}/web-operational/settlements/details?year=${year}&month=${month}&page=1&per_page=${daysInMonth}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.json()
+}
+
+export async function fetchMobileSettlementDetails(
+  year: number,
+  token: string
+) {
+  const response = await fetch(
+    `${BASE_URL}/app/settlements/details?year=${year}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  )
+
+  return response.json()
+}

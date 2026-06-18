@@ -170,9 +170,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import SettlementFSValidator from './components/validators/SettlementFSValidator.vue'
-import SettlementRFSValidator from './components/validators/SettlementRFSValidator.vue'
-import SettlementRKValidator from './components/validators/SettlementRKValidator.vue'
+import SettlementFSValidator from './components/SettlementFSValidator.vue'
+import SettlementRFSValidator from './components/SettlementRFSValidator.vue'
+import SettlementRKValidator from './components/SettlementRKValidator.vue'
 
 const year = ref(2026)
 const webToken = ref('')
