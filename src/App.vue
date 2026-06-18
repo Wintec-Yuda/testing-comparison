@@ -162,6 +162,11 @@
           :web-token="webToken"
           :mobile-token="mobileToken"
         />
+        <SettlementPenetrationValidator
+          :year="year"
+          :web-token="webToken"
+          :mobile-token="mobileToken"
+        />
       </div>
 
     </div>
@@ -172,6 +177,7 @@
 import { ref } from 'vue'
 import SettlementFSValidator from './components/SettlementFSValidator.vue'
 import SettlementRFSValidator from './components/SettlementRFSValidator.vue'
+import SettlementPenetrationValidator from './components/SettlementPenetrationValidator.vue'
 import SettlementRKValidator from './components/SettlementRKValidator.vue'
 
 const year = ref(2026)

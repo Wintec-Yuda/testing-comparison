@@ -167,3 +167,39 @@ export async function fetchMobileSettlementDetails(
 
   return response.json()
 }
+
+export async function fetchWebsiteSettlementPenetration(
+  year: number,
+  token: string
+) {
+  const response = await fetch(
+    `${BASE_URL}/web-operational/settlements/chart-penetration?year=${year}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  )
+  return response.json()
+}
+
+export async function fetchMobileSettlementPenetration(
+  year: number,
+  token: string
+) {
+  const response = await fetch(
+    `${BASE_URL}/app/settlements/chart-penetration?year=${year}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  )
+  return response.json()
+}
+
+export const fetchSettlementSummary = async (year: number, token: string) => {
+  const res = await fetch(
+    `https://hk-api.dev.kridatech.com/api/app/settlements/summary?year=${year}`,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  )
+  return res.json()
+}

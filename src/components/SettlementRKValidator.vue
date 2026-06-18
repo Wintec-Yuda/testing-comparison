@@ -27,7 +27,7 @@
       </div>
 
       <!-- SUMMARY -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
           <p class="text-slate-400 text-sm">Website Records</p>
           <h2 class="text-3xl font-bold text-white mt-3">
@@ -46,10 +46,17 @@
             {{ summary.commandCenter }}
           </h2>
         </div>
+        <!-- NEW: Total Bank Statement -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+          <p class="text-slate-400 text-sm">Bank Statement Summary Total</p>
+          <h2 class="text-3xl font-bold text-white mt-3">
+            {{ formatter.format(summary.bankStatementTotal) }}
+          </h2>
+        </div>
       </div>
 
       <!-- MATCH SUMMARY -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
           <p class="text-slate-400 text-sm">Website ↔ Mobile</p>
           <div class="flex items-center justify-between mt-4">
@@ -73,10 +80,32 @@
             </span>
           </div>
         </div>
+
+        <!-- NEW: Total Bank Statement Match -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+          <p class="text-slate-400 text-sm">Website Total ↔ Bank Statement Summary Total</p>
+          <div class="flex items-center justify-between mt-4">
+            <span class="text-3xl font-bold text-white">
+              {{ totalWebsite === summary.bankStatementTotal ? 'MATCH' : 'MISMATCH' }}
+            </span>
+            <span
+              :class="totalWebsite === summary.bankStatementTotal
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-red-500/10 text-red-400'"
+              class="px-4 py-1.5 rounded-2xl text-sm font-semibold"
+            >
+              {{ totalWebsite === summary.bankStatementTotal ? '✓ MATCH' : '✕ MISMATCH' }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-3">
+            {{ formatter.format(totalWebsite) }} vs {{ formatter.format(summary.bankStatementTotal) }}
+          </p>
+        </div>
       </div>
 
-      <!-- TABLE -->
+      <!-- TABLE (tetap sama) -->
       <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+        <!-- ... Table content tetap sama seperti sebelumnya ... -->
         <div class="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950">
           <div>
             <h2 class="text-white font-semibold text-lg">Monthly Validation</h2>
@@ -89,6 +118,7 @@
 
         <div class="overflow-x-auto">
           <table class="w-full min-w-[1100px]">
+            <!-- thead & tbody tetap sama -->
             <thead class="bg-slate-950">
               <tr>
                 <th class="px-6 py-4 text-left text-sm font-medium text-slate-400">Month</th>
@@ -128,9 +158,7 @@
                 </td>
                 <td class="px-6 py-5 text-center">
                   <span
-                    :class="row.websiteMobileMatch
-                      ? 'bg-emerald-500/10 text-emerald-400'
-                      : 'bg-red-500/10 text-red-400'"
+                    :class="row.websiteMobileMatch ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'"
                     class="inline-block px-4 py-1 rounded-2xl text-xs font-semibold"
                   >
                     {{ row.websiteMobileMatch ? 'MATCH' : 'MISMATCH' }}
@@ -138,9 +166,7 @@
                 </td>
                 <td class="px-6 py-5 text-center">
                   <span
-                    :class="row.websiteCCMatch
-                      ? 'bg-emerald-500/10 text-emerald-400'
-                      : 'bg-red-500/10 text-red-400'"
+                    :class="row.websiteCCMatch ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'"
                     class="inline-block px-4 py-1 rounded-2xl text-xs font-semibold"
                   >
                     {{ row.websiteCCMatch ? 'MATCH' : 'MISMATCH' }}
@@ -161,6 +187,8 @@ import {
   fetchWebsiteBankStatement,
   fetchMobileBankStatement,
   fetchCashIn,
+  // Tambahkan fetch function baru ini
+  fetchSettlementSummary
 } from '../services/api'
 
 interface ValidationRow {
@@ -185,16 +213,17 @@ const summary = ref({
   website: 0,
   mobile: 0,
   commandCenter: 0,
+  bankStatementTotal: 0,   // ← NEW
 })
 
 const formatter = new Intl.NumberFormat('id-ID')
 
-const matchedWebMobile = computed(() => 
-  rows.value.filter(r => r.websiteMobileMatch).length
-)
+const matchedWebMobile = computed(() => rows.value.filter(r => r.websiteMobileMatch).length)
+const matchedWebCC = computed(() => rows.value.filter(r => r.websiteCCMatch).length)
 
-const matchedWebCC = computed(() => 
-  rows.value.filter(r => r.websiteCCMatch).length
+// Total Website untuk dibandingkan dengan Bank Statement
+const totalWebsite = computed(() => 
+  rows.value.reduce((sum, row) => sum + row.website, 0)
 )
 
 function totalBank(item: any): number {
@@ -222,20 +251,25 @@ async function validateData() {
   rows.value = []
 
   try {
-    const [webRes, mobileRes, ccRes] = await Promise.all([
+    const [webRes, mobileRes, ccRes, summaryRes] = await Promise.all([
       fetchWebsiteBankStatement(props.year, props.webToken),
       fetchMobileBankStatement(props.year, props.mobileToken),
       fetchCashIn(props.year, props.webToken),
+      fetchSettlementSummary(props.year, props.webToken), // ← NEW
     ])
 
     const websiteData = webRes?.payload?.data || []
     const mobileData = mobileRes?.payload?.data || []
     const ccData = ccRes?.payload?.data?.monthly_breakdown || []
 
+    // Extract Bank Statement Total
+    const bankStatementTotal = summaryRes?.payload?.data?.bank_statement_total || 0
+
     summary.value = {
       website: websiteData.length,
       mobile: mobileData.length,
       commandCenter: ccData.length,
+      bankStatementTotal,           // ← NEW
     }
 
     const result: ValidationRow[] = []
