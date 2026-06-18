@@ -230,9 +230,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
-import SummaryCard from '../SummaryCard.vue'
-import DiffBadge from '../DiffBadge.vue'
-
 import {
   fetchWebsiteSettlement,
   fetchMobileSettlement,
